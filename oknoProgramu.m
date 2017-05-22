@@ -75,16 +75,11 @@ varargout{1} = handles.output;
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton2 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 folders = uipickfiles;
-
 if(isempty(folders) ~= 1)
 imagesPaths = cell2mat(folders(:));
 guidata(hObject,imagesPaths);
 end
-
 
 % --- Executes on button press in pushbutton3.
 function pushbutton3_Callback(hObject, eventdata, handles)
@@ -98,7 +93,13 @@ function pushbutton5_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton5 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+prompt = {'Ktora klasa:'};
+dlg_title = 'Input';
+num_lines = 1;
+defaultans = {'1'};
+answer = inputdlg(prompt,dlg_title,num_lines,defaultans); 
 imagesPaths = handles(:);
+% todo dodac do bazy
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
       imm = imread(handles(1,:));
