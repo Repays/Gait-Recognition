@@ -1,4 +1,5 @@
 %% BW - macierz obrazka pozyskana z imread
+%% BW - Metoda oblicza obramowania obrazka.
 function rectangle = calculateRectangle(BW)
 state = regionprops(BW, 'BoundingBox');
 box = cat(1, state.BoundingBox);
