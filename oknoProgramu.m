@@ -22,7 +22,7 @@ function varargout = oknoProgramu(varargin)
 
 % Edit the above text to modify the response to help oknoProgramu
 
-% Last Modified by GUIDE v2.5 14-May-2017 13:20:28
+% Last Modified by GUIDE v2.5 24-May-2017 21:19:12
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -81,11 +81,6 @@ imagesPaths = cell2mat(folders(:));
 guidata(hObject,imagesPaths);
 end
 
-% --- Executes on button press in pushbutton3.
-function pushbutton3_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton3 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 
 % --- Executes on button press in pushbutton5.
@@ -99,7 +94,7 @@ num_lines = 1;
 defaultans = {'1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans); 
 imagesPaths = guidata(hObject);
-imagesPaths
+
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
       imm = imread(handles(i,:));
@@ -114,16 +109,67 @@ end
 
 
 
+
 % --- Executes on button press in pushbutton6.
 function pushbutton6_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton6 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
-net=narxnet()
-view(net);
+
+
 
 % --- Executes on button press in pushbutton7.
 function pushbutton7_Callback(hObject, eventdata, handles)
 % hObject    handle to pushbutton7 (see GCBO)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
+net=narxnet()
+view(net);
+
+
+function edit1_Callback(hObject, eventdata, handles)
+% hObject    handle to Edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+set(handles.Edit,'String',num_class);
+
+
+
+% Hints: get(hObject,'String') returns contents of Edit as text
+%        str2double(get(hObject,'String')) returns contents of Edit as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function Edit_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to Edit (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
+
+
+
+function test1_Callback(hObject, eventdata, handles)
+% hObject    handle to test1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    structure with handles and user data (see GUIDATA)
+
+% Hints: get(hObject,'String') returns contents of test1 as text
+%        str2double(get(hObject,'String')) returns contents of test1 as a double
+
+
+% --- Executes during object creation, after setting all properties.
+function test1_CreateFcn(hObject, eventdata, handles)
+% hObject    handle to test1 (see GCBO)
+% eventdata  reserved - to be defined in a future version of MATLAB
+% handles    empty - handles not created until after all CreateFcns called
+
+% Hint: edit controls usually have a white background on Windows.
+%       See ISPC and COMPUTER.
+if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
+    set(hObject,'BackgroundColor','white');
+end
