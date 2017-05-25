@@ -76,7 +76,7 @@ varargout{1} = handles.output;
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
 folders = uipickfiles;
-if(isempty(folders) ~= 1)
+if(iscell(folders) == 1)
 imagesPaths = cell2mat(folders(:));
 guidata(hObject,imagesPaths);
 end
