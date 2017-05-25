@@ -78,7 +78,8 @@ function pushbutton2_Callback(hObject, eventdata, handles)
 folders = uipickfiles;
 if(isempty(folders) ~= 1)
 imagesPaths = cell2mat(folders(:));
-guidata(hObject,imagesPaths);
+hObject.
+guidata(handles,imagesPaths);
 end
 
 % --- Executes on button press in pushbutton3.
@@ -97,18 +98,17 @@ prompt = {'Ktora klasa:'};
 dlg_title = 'Input';
 num_lines = 1;
 defaultans = {'1'};
+myhandles = guidata(imagesPaths);
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans); 
-imagesPaths = guidata(hObject);
-imagesPaths
+imagesPaths = handles(:);
+whos handles;
+imagesPaths(1,:)
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
       imm = imread(handles(i,:));
-      rec = calculateRectangle(imm);
-       % todo dodac do bazy
-       % parametry kwadratu.
-      rec
-      % klasa do której nale¿y dodaæ.
-      answer
+      % todo dodac do bazy
+      rec = calculateRectangle(imm)
+      rec;
     end
 end
 
