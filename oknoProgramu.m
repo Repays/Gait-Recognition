@@ -75,10 +75,18 @@ varargout{1} = handles.output;
 
 % --- Executes on button press in pushbutton2.
 function pushbutton2_Callback(hObject, eventdata, handles)
+imagesPaths = [];
+elements = guidata(hObject);
+
 folders = uipickfiles;
 if(iscell(folders) == 1)
 imagesPaths = cell2mat(folders(:));
-guidata(hObject,imagesPaths);
+%%guidata(hObject,imagesPaths);
+if isfield(elements,'net')
+    guidata(hObject,struct('images',imagesPaths,'net',elements.net));
+else
+guidata(hObject,struct('images',imagesPaths));
+end
 end
 
 
@@ -93,18 +101,41 @@ dlg_title = 'Input';
 num_lines = 1;
 defaultans = {'1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans); 
-imagesPaths = guidata(hObject);
-
+elements = guidata(hObject);
+imagesPaths = elements.images;
+X = [];
+A = [];
+B = [];
+T =[];
+TF =[];
+if isfield(elements,'net')
+net = elements.net;
+else
+net = narxnet(1:2,1:2,20);  
+end
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
-      imm = imread(handles(i,:));
+      imm = imread(imagesPaths(i,:));
       rec = calculateRectangle(imm);
-       % todo dodac do bazy
-       % parametry kwadratu.
-      rec
-      % klasa do której nale¿y dodaæ.
-      answer
-    end
+       A = [rec(3)];
+       X = [X ; A];
+       B = str2double(answer);
+       T = [T ; B];
+       TF = [TF ; i];
+    end  
+    X = transpose(X);
+    T = transpose(T);
+    TF = transpose(TF);
+    X1 = num2cell(X);
+    T1 = num2cell(T);
+    T2 = num2cell(TF);
+    [Xs,Xi,Ai,Ts] = preparets(net,X1,{},T2);
+    net = train(net,Xs,Ts,Xi,Ai);
+    view(net)
+    Y = net(Xs,Xi,Ai);
+    perf = perform(net,Ts,Y)
+    
+    guidata(hObject,struct('net',net));
 end
 
 
@@ -112,19 +143,50 @@ end
 
 % --- Executes on button press in pushbutton6.
 function pushbutton6_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton6 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-
 
 
 % --- Executes on button press in pushbutton7.
 function pushbutton7_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton7 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
-net=narxnet()
-view(net);
+
+elements = guidata(hObject);
+if isfield(elements,'net')
+    net = elements.net;
+else
+Disp('Nie nauczono sieci');
+return
+end
+if isfield(elements,'images')
+  imagesPaths = elements.images;
+else
+Disp('Nie wybrano zdjêæ');
+return
+end
+X = [];
+A = [];
+T =[];
+
+if(isempty(imagesPaths) ~= 1)
+    for i=1:size(imagesPaths)
+      imm = imread(imagesPaths(i,:));
+      rec = calculateRectangle(imm);
+       A = [rec(3)];
+       X = [X ; A];
+       T = [T ; i];
+    end  
+ 
+end
+   
+X = transpose(X);
+T = transpose(T);
+X1 = num2cell(X);
+T = num2cell(T);
+netc = closeloop(net);
+view(netc)
+[Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T);
+y = netc(Xs,Xi,Ai);
+y
+
+
 
 
 function edit1_Callback(hObject, eventdata, handles)
