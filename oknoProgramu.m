@@ -61,7 +61,6 @@ guidata(hObject, handles);
 % UIWAIT makes oknoProgramu wait for user response (see UIRESUME)
 % uiwait(handles.figure1);
 
-
 % --- Outputs from this function are returned to the command line.
 function varargout = oknoProgramu_OutputFcn(hObject, eventdata, handles) 
 % varargout  cell array for returning output args (see VARARGOUT);
@@ -72,30 +71,28 @@ function varargout = oknoProgramu_OutputFcn(hObject, eventdata, handles)
 % Get default command line output from handles structure
 varargout{1} = handles.output;
 
-
-% --- Executes on button press in pushbutton2.
+% Pobranie zdjêæ
 function pushbutton2_Callback(hObject, eventdata, handles)
 imagesPaths = [];
 elements = guidata(hObject);
-
 folders = uipickfiles;
-if(iscell(folders) == 1)
-imagesPaths = cell2mat(folders(:));
-%%guidata(hObject,imagesPaths);
-if isfield(elements,'net')
-    guidata(hObject,struct('images',imagesPaths,'net',elements.net));
-else
-guidata(hObject,struct('images',imagesPaths));
+
+    if(iscell(folders) == 1)
+        imagesPaths = cell2mat(folders(:));
+    
+    if isfield(elements,'net') && isfield(elements,'H') && isfield(elements,'W') && isfield(elements,'T')
+        guidata(hObject,struct('images',imagesPaths, 'net',elements.net, 'H', elements.H, 'W', elements.W,'T',elements.T));
+    elseif isfield(elements,'H') && isfield(elements,'W') && isfield(elements,'T')
+        guidata(hObject,struct('images',imagesPaths,'H', elements.H,'W',elements.W,'T',elements.T));
+    elseif isfield(elements,'net')
+        guidata(hObject,struct('net',elements.net,'images',imagesPaths));
+    else
+        guidata(hObject,struct('images',imagesPaths));
+    end
 end
-end
 
-
-
-% --- Executes on button press in pushbutton5.
+% Dodanie zdjeæ do bazy danych
 function pushbutton5_Callback(hObject, eventdata, handles)
-% hObject    handle to pushbutton5 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 prompt = {'Ktora klasa:'};
 dlg_title = 'Input';
 num_lines = 1;
@@ -103,109 +100,122 @@ defaultans = {'1'};
 answer = inputdlg(prompt,dlg_title,num_lines,defaultans); 
 elements = guidata(hObject);
 imagesPaths = elements.images;
+
 X = [];
+H = [];
+W = [];
 A = [];
 B = [];
 T =[];
-TF =[];
-if isfield(elements,'net')
-net = elements.net;
-else
-net = narxnet(1:2,1:2,20);  
-end
+
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
       imm = imread(imagesPaths(i,:));
       rec = calculateRectangle(imm);
        A = [rec(3)];
-       X = [X ; A];
+       H = [H ; A];
+       A = [rec(4)];
+       W = [W ; A];
        B = str2double(answer);
        T = [T ; B];
-       TF = [TF ; i];
     end  
-    X = transpose(X);
-    T = transpose(T);
-    TF = transpose(TF);
-    X1 = num2cell(X);
-    T1 = num2cell(T);
-    T2 = num2cell(TF);
-    [Xs,Xi,Ai,Ts] = preparets(net,X1,{},T2);
-    net = train(net,Xs,Ts,Xi,Ai);
-    view(net)
-    Y = net(Xs,Xi,Ai);
-    perf = perform(net,Ts,Y)
     
-    guidata(hObject,struct('net',net));
+     if isfield(elements,'H') && isfield(elements,'W')
+        H1 = elements.H;
+        H = [H1 ; H];
+        W1 = elements.W;
+        W = [W1 ; W];
+        T1 = elements.T;
+        T = [T1 ; T];
+     end
+    
+    if isfield(elements,'net')
+        guidata(hObject,struct('net',elements.net,'H',H,'W',W,'T',T));
+    else
+        guidata(hObject,struct('H',H,'W',W,'T',T));
+    end
 end
 
-
-
-
-% --- Executes on button press in pushbutton6.
+% --- Usuniecie bazy obrazów
 function pushbutton6_Callback(hObject, eventdata, handles)
+elements = guidata(hObject);
+X = [];
+X1 = [];
+T1 = [];
+net = narxnet(1:2,1:2,20);
+%%net.divideFcn = 'divideblock';
+W = elements.W;
+H = elements.H;
+T = elements.T;
 
+W = transpose(W);
+H = transpose(H);
+T = transpose(T);
 
-% --- Executes on button press in pushbutton7.
+X = [W;H];
+X = transpose(X);
+T1 = num2cell(T);
+
+X1 = tonndata(X, false, false);
+[Xs,Xi,Ai,Ts] = preparets(net,X1,{},T1);
+net = train(net,Xs,Ts,Xi,Ai);
+view(net)
+Y = net(Xs,Xi,Ai);
+guidata(hObject,struct('net',net));
+% --- Rozpoznawanie obrazu
 function pushbutton7_Callback(hObject, eventdata, handles)
 
 elements = guidata(hObject);
+
 if isfield(elements,'net')
     net = elements.net;
 else
-Disp('Nie nauczono sieci');
+    Disp('Nie nauczono sieci');
 return
 end
+
 if isfield(elements,'images')
   imagesPaths = elements.images;
 else
 Disp('Nie wybrano zdjêæ');
 return
 end
+
 X = [];
 A = [];
 T =[];
-
+W = [];
+H = [];
 if(isempty(imagesPaths) ~= 1)
     for i=1:size(imagesPaths)
       imm = imread(imagesPaths(i,:));
       rec = calculateRectangle(imm);
-       A = [rec(3)];
-       X = [X ; A];
        T = [T ; i];
-    end  
- 
+       A = [rec(3)];
+       H = [H ; A];
+       A = [rec(4)];
+       W = [W ; A];
+    end
+    W = transpose(W);
+    H = transpose(H);
+    T = transpose(T);
+
+    X = [W;H];
+    X = transpose(X);
+    T = num2cell(T);
+
+    X1 = tonndata(X, false, false);
+    netc = closeloop(net);
+    view(netc)
+    [Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T);
+    y = netc(Xs,Xi,Ai)
 end
-   
-X = transpose(X);
-T = transpose(T);
-X1 = num2cell(X);
-T = num2cell(T);
-netc = closeloop(net);
-view(netc)
-[Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T);
-y = netc(Xs,Xi,Ai);
-y
-
-
-
 
 function edit1_Callback(hObject, eventdata, handles)
-% hObject    handle to Edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 set(handles.Edit,'String',num_class);
-
-
-
-% Hints: get(hObject,'String') returns contents of Edit as text
-%        str2double(get(hObject,'String')) returns contents of Edit as a double
-
 
 % --- Executes during object creation, after setting all properties.
 function Edit_CreateFcn(hObject, eventdata, handles)
-% hObject    handle to Edit (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    empty - handles not created until after all CreateFcns called
 
 % Hint: edit controls usually have a white background on Windows.
 %       See ISPC and COMPUTER.
@@ -216,9 +226,6 @@ end
 
 
 function test1_Callback(hObject, eventdata, handles)
-% hObject    handle to test1 (see GCBO)
-% eventdata  reserved - to be defined in a future version of MATLAB
-% handles    structure with handles and user data (see GUIDATA)
 
 % Hints: get(hObject,'String') returns contents of test1 as text
 %        str2double(get(hObject,'String')) returns contents of test1 as a double
