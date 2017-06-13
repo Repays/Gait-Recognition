@@ -22,7 +22,7 @@ function varargout = oknoProgramu(varargin)
 
 % Edit the above text to modify the response to help oknoProgramu
 
-% Last Modified by GUIDE v2.5 24-May-2017 21:19:12
+% Last Modified by GUIDE v2.5 13-Jun-2017 14:13:58
 
 % Begin initialization code - DO NOT EDIT
 gui_Singleton = 1;
@@ -72,14 +72,13 @@ function varargout = oknoProgramu_OutputFcn(hObject, eventdata, handles)
 varargout{1} = handles.output;
 
 % Pobranie zdjêæ
-function pushbutton2_Callback(hObject, eventdata, handles)
+function pickPictures_Callback(hObject, eventdata, handles)
 imagesPaths = [];
 elements = guidata(hObject);
 folders = uipickfiles;
 
     if(iscell(folders) == 1)
         imagesPaths = cell2mat(folders(:));
-    
     if isfield(elements,'net') && isfield(elements,'H') && isfield(elements,'W') && isfield(elements,'T')
         guidata(hObject,struct('images',imagesPaths, 'net',elements.net, 'H', elements.H, 'W', elements.W,'T',elements.T));
     elseif isfield(elements,'H') && isfield(elements,'W') && isfield(elements,'T')
@@ -92,7 +91,7 @@ folders = uipickfiles;
 end
 
 % Dodanie zdjeæ do bazy danych
-function pushbutton5_Callback(hObject, eventdata, handles)
+function addToDatabase_Callback(hObject, eventdata, handles)
 prompt = {'Ktora klasa:'};
 dlg_title = 'Input';
 num_lines = 1;
@@ -137,51 +136,25 @@ if(isempty(imagesPaths) ~= 1)
 end
 
 % --- Usuniecie bazy obrazów
-function pushbutton6_Callback(hObject, eventdata, handles)
-elements = guidata(hObject);
-X = [];
-X1 = [];
-T1 = [];
-net = narxnet(1:2,1:2,20);
-%%net.divideFcn = 'divideblock';
-W = elements.W;
-H = elements.H;
-T = elements.T;
+function deleteFromDatabase_Callback(hObject, eventdata, handles)
+guidata(hObject,0);
 
-W = transpose(W);
-H = transpose(H);
-T = transpose(T);
-
-X = [W;H];
-X = transpose(X);
-T1 = num2cell(T);
-
-X1 = tonndata(X, false, false);
-[Xs,Xi,Ai,Ts] = preparets(net,X1,{},T1);
-
-net = train(net,Xs,Ts,Xi,Ai);
-netc = closeloop(net);
-[Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T1);
-net = train(netc,Xs,Ts,Xi,Ai);
-view(net)
-Y = net(Xs,Xi,Ai);
-guidata(hObject,struct('net',net));
 % --- Rozpoznawanie obrazu
-function pushbutton7_Callback(hObject, eventdata, handles)
+function recognize_Callback(hObject, eventdata, handles)
 
 elements = guidata(hObject);
 
 if isfield(elements,'net')
     net = elements.net;
 else
-    Disp('Nie nauczono sieci');
+    disp('Nie nauczono sieci');
 return
 end
 
 if isfield(elements,'images')
   imagesPaths = elements.images;
 else
-Disp('Nie wybrano zdjêæ');
+    disp('Nie wybrano zdjêæ');
 return
 end
 
@@ -215,6 +188,37 @@ if(isempty(imagesPaths) ~= 1)
     y = netc(Xs,Xi,Ai)
 end
 
+% Uczy sieæ z danych przechowywanych w bazie
+function learnDatabase_Callback(hObject, eventdata, handles)
+elements = guidata(hObject);
+X = [];
+X1 = [];
+T1 = [];
+net = narxnet(1:2,1:2,20);
+net.divideFcn = 'dividerand';
+W = elements.W;
+H = elements.H;
+T = elements.T;
+
+W = transpose(W);
+H = transpose(H);
+T = transpose(T);
+
+X = [W;H];
+X = transpose(X);
+T1 = num2cell(T);
+
+X1 = tonndata(X, false, false);
+[Xs,Xi,Ai,Ts] = preparets(net,X1,{},T1);
+
+net = train(net,Xs,Ts,Xi,Ai);
+netc = closeloop(net);
+[Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T1);
+net = train(netc,Xs,Ts,Xi,Ai);
+view(net)
+Y = net(Xs,Xi,Ai);
+guidata(hObject,struct('net',net));
+
 function edit1_Callback(hObject, eventdata, handles)
 set(handles.Edit,'String',num_class);
 
@@ -226,7 +230,6 @@ function Edit_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
-
 
 
 function test1_Callback(hObject, eventdata, handles)
@@ -246,3 +249,4 @@ function test1_CreateFcn(hObject, eventdata, handles)
 if ispc && isequal(get(hObject,'BackgroundColor'), get(0,'defaultUicontrolBackgroundColor'))
     set(hObject,'BackgroundColor','white');
 end
+
