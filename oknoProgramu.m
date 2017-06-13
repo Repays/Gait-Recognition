@@ -158,7 +158,11 @@ T1 = num2cell(T);
 
 X1 = tonndata(X, false, false);
 [Xs,Xi,Ai,Ts] = preparets(net,X1,{},T1);
+
 net = train(net,Xs,Ts,Xi,Ai);
+netc = closeloop(net);
+[Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T1);
+net = train(netc,Xs,Ts,Xi,Ai);
 view(net)
 Y = net(Xs,Xi,Ai);
 guidata(hObject,struct('net',net));
