@@ -187,10 +187,9 @@ if(isempty(imagesPaths) ~= 1)
     [Xs,Xi,Ai,Ts] = preparets(netc,X1,{},T);
     y = netc(Xs,Xi,Ai);
     wynik = y(length(y));
-    wynik = wynik{:}
+    wynik = wynik{:};
     wynik = round(wynik);
-    message = strcat('osoba numer: ',num2str(wynik));
-    msgbox(message,'Wynik');
+    msgbox(num2str(),'Osoba numer: ');
 end
 
 % Uczy sieæ z danych przechowywanych w bazie
